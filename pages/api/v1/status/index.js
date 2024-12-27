@@ -1,6 +1,8 @@
 import database from "infra/database";
+import { InternalServerError } from "infra/errors";
 
 export default async function status(request, response) {
+  try {
   const updatedAt = new Date().toISOString();
 
   const databaseVersionResult = await database.query("SHOW server_version;");
@@ -32,4 +34,14 @@ export default async function status(request, response) {
       },
     },
   });
+  }  catch(error) {
+    const publicErrorObject = new InternalServerError({
+      cause: error
+    });
+
+    console.log("\n Erro dentro do catch do controller");
+    console.error(publicErrorObject);
+
+    response.status(500).json(publicErrorObject)
+  }
 }
