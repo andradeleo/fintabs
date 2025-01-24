@@ -1,4 +1,4 @@
-import  { createRouter } from "next-connect";
+import { createRouter } from "next-connect";
 import migrationRunner from "node-pg-migrate";
 import { resolve } from "node:path";
 import database from "infra/database";
@@ -26,12 +26,11 @@ async function getHandler(request, response) {
     dbClient = await database.getNewClient();
 
     const pendingMigrations = await migrationRunner({
-      ...defaultMigrationsOption, 
-      dbClient
+      ...defaultMigrationsOption,
+      dbClient,
     });
 
     return response.status(200).json(pendingMigrations);
-
   } finally {
     await dbClient.end();
   }
@@ -54,7 +53,6 @@ async function postHandler(request, response) {
     }
 
     return response.status(200).json(migrateMigrations);
-
   } finally {
     await dbClient.end();
   }
