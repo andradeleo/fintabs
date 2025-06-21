@@ -20,6 +20,10 @@ function onErrorHandler(error, request, response) {
     return response.status(error.statusCode).json(error);
   }
 
+  const publicErrorObject = new InternalServerError({
+    cause: error,
+  });
+
   console.error(publicErrorObject);
 
   response.status(publicErrorObject.statusCode).json(publicErrorObject);
