@@ -1,7 +1,7 @@
-import orchestrator from "tests/orchestrator";
 import { version as uuidVersion } from "uuid";
-import session from "models/session";
 import setCookieParser from "set-cookie-parser";
+import orchestrator from "tests/orchestrator.js";
+import session from "models/session.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -9,7 +9,7 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
-describe("GET api/v1/user", () => {
+describe("GET /api/v1/user", () => {
   describe("Default user", () => {
     test("With valid session", async () => {
       const createdUser = await orchestrator.createUser({
@@ -27,7 +27,6 @@ describe("GET api/v1/user", () => {
       expect(response.status).toBe(200);
 
       const cacheControl = response.headers.get("Cache-Control");
-
       expect(cacheControl).toBe(
         "no-store, no-cache, max-age=0, must-revalidate",
       );
@@ -137,11 +136,11 @@ describe("GET api/v1/user", () => {
 
     test("With nonexistent session", async () => {
       const nonexistentToken =
-        "1c9193741bbc8cda1a79b37152157b25f88b451f9aa8676598328d55b37294e68c3aea3eee1cfdbaaf6aa92387f9c7cf";
+        "f0b62a5ff97ae607701ceeee2e3c4987c4b9debb534410e2444f9eb2288b6e3b90158a71d086e31eabef9b36cbb549e1";
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          Cookie: `session_id=${nonexistentToken}`,
+          cookie: `session_id=${nonexistentToken}`,
         },
       });
 
@@ -154,6 +153,19 @@ describe("GET api/v1/user", () => {
         message: "Usuário não possui sessão ativa.",
         action: "Verifique se este usuário está logado e tente novamente.",
         status_code: 401,
+      });
+
+      // Set-Cookie assertions
+      const parsedSetCookie = setCookieParser(response, {
+        map: true,
+      });
+
+      expect(parsedSetCookie.session_id).toEqual({
+        name: "session_id",
+        value: "invalid",
+        maxAge: -1,
+        path: "/",
+        httpOnly: true,
       });
     });
 
@@ -185,6 +197,19 @@ describe("GET api/v1/user", () => {
         message: "Usuário não possui sessão ativa.",
         action: "Verifique se este usuário está logado e tente novamente.",
         status_code: 401,
+      });
+
+      // Set-Cookie assertions
+      const parsedSetCookie = setCookieParser(response, {
+        map: true,
+      });
+
+      expect(parsedSetCookie.session_id).toEqual({
+        name: "session_id",
+        value: "invalid",
+        maxAge: -1,
+        path: "/",
+        httpOnly: true,
       });
     });
   });
