@@ -1,4 +1,5 @@
 import orchestrator from "tests/orchestrator";
+import activation from "models/activation";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -8,8 +9,10 @@ beforeAll(async () => {
 });
 
 describe("Use case: Registration Flow (all successful", () => {
+  let createUserResponseBody;
+
   test("Create user account", async () => {
-    const createUseResponse = await fetch(
+    const createUserResponse = await fetch(
       "http://localhost:3000/api/v1/users",
       {
         method: "POST",
@@ -18,28 +21,40 @@ describe("Use case: Registration Flow (all successful", () => {
         },
         body: JSON.stringify({
           username: "andrleo",
-          email: "contato@andrleo",
+          email: "registration.flow@curso.dev",
           password: "senha123",
         }),
       },
     );
 
-    expect(createUseResponse.status).toBe(201);
+    expect(createUserResponse.status).toBe(201);
 
-    const createUseResponseBody = await createUseResponse.json();
+    createUserResponseBody = await createUserResponse.json();
 
-    expect(createUseResponseBody).toEqual({
-      id: createUseResponseBody.id,
-      username: createUseResponseBody.username,
-      email: createUseResponseBody.email,
+    expect(createUserResponseBody).toEqual({
+      id: createUserResponseBody.id,
+      username: createUserResponseBody.username,
+      email: "registration.flow@curso.dev",
       features: ["read:activation_token"],
-      password: createUseResponseBody.password,
-      created_at: createUseResponseBody.created_at,
-      updated_at: createUseResponseBody.updated_at,
+      password: createUserResponseBody.password,
+      created_at: createUserResponseBody.created_at,
+      updated_at: createUserResponseBody.updated_at,
     });
   });
 
-  test("Receive activation email", async () => {});
+  test("Receive activation email", async () => {
+    const lastEmail = await orchestrator.getLastEmail();
+
+    const activationToken = await activation.findOneByUserId(
+      createUserResponseBody.id,
+    );
+
+    expect(lastEmail.sender).toBe("<contato@fintabs.com.br>");
+    expect(lastEmail.recipients[0]).toBe("<registration.flow@curso.dev>");
+    expect(lastEmail.subject).toBe("Ative seu cadastro no FinTabs!");
+    expect(lastEmail.text).toContain("andrleo");
+    expect(lastEmail.text).toContain(activationToken.id);
+  });
 
   test("Activate account", async () => {});
 
