@@ -17,6 +17,7 @@ function onNoMatchHandler(request, response) {
 }
 
 function onErrorHandler(error, request, response) {
+  console.log({ error });
   if (
     error instanceof ValidationError ||
     error instanceof NotFoundError ||
@@ -33,8 +34,6 @@ function onErrorHandler(error, request, response) {
   const publicErrorObject = new InternalServerError({
     cause: error,
   });
-
-  console.error(publicErrorObject);
 
   response.status(publicErrorObject.statusCode).json(publicErrorObject);
 }
@@ -62,6 +61,7 @@ async function clearSessionCookie(response) {
 }
 
 async function injectAnonymousOrUser(request, response, next) {
+  console.log("first middle");
   if (request.cookies?.session_id) {
     await injectAuthenticateUser(request);
     return next();
@@ -94,6 +94,7 @@ async function injectAnonymousUser(request) {
 }
 
 function canRequest(feature) {
+  console.log("can request");
   return function canRequestMiddleware(request, response, next) {
     const userTryingToRequest = request.context.user;
 
