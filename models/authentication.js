@@ -9,10 +9,14 @@ async function getUser(providedEmail, providedPassword) {
 
     return storedUser;
   } catch (error) {
-    throw new UnauthorizedError({
-      message: "Dados de autenticação não conferem.",
-      action: "Verifique se os dados enviados estão corretos.",
-    });
+    if (error instanceof UnauthorizedError) {
+      throw new UnauthorizedError({
+        message: "Dados de autenticação não conferem.",
+        action: "Verifique se os dados enviados estão corretos.",
+      });
+    }
+
+    throw error;
   }
 
   async function findUserByEmail(providedEmail) {
